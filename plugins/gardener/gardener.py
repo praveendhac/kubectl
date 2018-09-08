@@ -8,59 +8,108 @@ def get_values(env):
   # count: 1 val=cluster-info, 2 val=get ns, 3 val=get po -n dev
   return val
 
-def exec_command(val_list, kctl, kube_ctx):
-  kcfg_file = kube_ctx.split("=")[1]
-  if len(val_list) == 3:
-    if "--all-namespaces" in val_list[2]:
-      cmd = kctl + " " + val_list[0] + " " + val_list[1] + " " + val_list[2]
-    else:
-      cmd = kctl + " " + val_list[0] + " " + val_list[1] + " -n " + val_list[2]
-  elif len(val_list) == 2:
-    cmd = kctl + " " + val_list[0] + " " + val_list[1]
-  elif len(val_list) == 1:
-    if "cluster-info" in val_list[0]:
-      cmd = kctl + " " + val_list[0]
-    elif "all" in val_list[0]:
-      cmd = "gardenctl ls gardens"
-      proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-      kctx, err = proc.communicate()
-      if not err:
-        print "kctx:", kctx
-        return
-  else:
-    print "invalid [verb, resource, namespace]:", val_list
-  print "Executing :", cmd, "in context of ",kube_ctx 
-  cmd += " --kubeconfig=" + kcfg_file
+def exec_command(cmd):
+ # print "split flag_val:", flag_val.split(" ")
+ # cluster_ctx = flag_val.split(" ")[0]
+ # cmd = "gardenctl target garden " + cluster_ctx
+ # if len(flag_val.split(" ")) == 2 and "cluster-info" in flag_val:
+ #   pass
+ #   # CHECK
+ # else:
+ #   verb = flag_val.split(" ")[1]
+ # cluster_ctx = flag_val.split(" ")[0]
+  print "executing ", cmd
   proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-  kout, err = proc.communicate()
-  if not err:
-      print "kout:\n", kout
+  out, err = proc.communicate()
+  if err:
+    if "gardenctl" in cmd:
+      print "check \"gardenctl\" PATH"
+    else:
+      print "invalid [verb, resource, namespace]:", val_list
+  else:
+    print "out:",out
+  return out
 
+def get_cluster_kubecfg(cluster_ctx, cluster_name):
+  if "garden_ctx" in cluster_ctx:
+    cmd = "gardenctl target garden " + cluster_name
+    return exec_command(cmd)
+
+def parse_values(cluster_ctx, flag_val, kctl):
+  cluster_name = flag_val.split(" ")[0]
+  cluster_kubecfg = get_cluster_kubecfg(cluster_ctx, cluster_name)
+  print "cluster_kubecfg:", cluster_kubecfg
+  kcfg_file = cluster_kubecfg.split("=")[1]
+  
+  val_list = flag_val.split(" ")
+  if len(val_list) == 4:
+    if "--all-namespaces" in val_list[3]:
+      cmd = kctl + " " + val_list[1] + " " + val_list[2] + " " + val_list[3]
+    else:
+      cmd = kctl + " " + val_list[1] + " " + val_list[2] + " -n " + val_list[3]
+  elif len(val_list) == 3:
+    cmd = kctl + " " + val_list[1] + " " + val_list[2]
+  elif len(val_list) == 2:
+    if "cluster-info" in val_list[1]:
+      cmd = kctl + " " + val_list[1]
+    elif "all" in val_list[1]:
+      cmd = "gardenctl ls gardens"
+      garden_ls = exec_command(cmd) 
+      if garden_ls:
+        print "garden_ls:", garden_ls
+
+  print "Executing :", cmd, "in context of ",kcfg_file 
+  cmd += " --kubeconfig=" + kcfg_file
+  return cmd
+
+def exec_ls(ctx):
+  if "gardens" in ctx:
+    cmd = "gardenctl ls gardens"
+  if "seeds" in ctx:
+    cmd = "gardenctl ls seeds"
+  if "shoots" in ctx:
+    cmd = "gardenctl ls shoots"
+  exec_command(cmd)
+    
 def main():
+  garden_flag = 0
+  seed_flag = 0
+  shoot_flag = 0
+
   kctl = os.environ.get('KUBECTL_PLUGINS_CALLER')
   #print "plugin name:", os.environ.get('KUBECTL_PLUGINS_DESCRIPTOR_NAME')
   #print "command file:", os.environ.get('KUBECTL_PLUGINS_DESCRIPTOR_COMMAND')
   if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN'):
-    cmd = "gardenctl target garden msa-dev-garden"
-    try:
-      proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-      kctx, err = proc.communicate()
-      if not err:
-        print "kctx:", kctx
-    except:
-      print "gardenctl not present, check PATH"
+    garden_flag = 1
+    garden_flag_val = os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN')
+    if len(garden_flag_val.split(" ")) == 1 and "all" in garden_flag_val or "ls" in garden_flag_val:
+      exec_ls("gardens")
       return
 
-    k8s_val = get_values(os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN'))
-    exec_command(k8s_val, kctl, kctx)
+    cmd = parse_values("garden_ctx", garden_flag_val, kctl)
+    exec_command(cmd)
   
   if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SEED'):
+    seed_flag = 1
+    if not garden_flag:
+      print "Set garden cluster context"
+      return
+
+    seed_flag_val = os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SEED')
+    if len(seed_flag_val.split(" ")) == 1 and "all" in seed_flag_val or "ls" in seed_flag_val:
+      exec_ls("seeds")
+      return
     k8s_val = get_values(os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SEED'))
     print "k8s_val:", k8s_val
     print "seeds list"
     print os.system("gardenctl ls seeds")
   
   if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SHOOT'):
+    shoot_flag = 1
+    shoot_flag_val = os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SHOOT')
+    if len(flag_val.split(" ")) == 1 and "all" in shoot_flag_val or "ls" in shoot_flag_val:
+      exec_ls("shoots")
+      return
     k8s_val = get_values(os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SHOOT'))
     print "k8s_val:", k8s_val
     print "shoots list"
