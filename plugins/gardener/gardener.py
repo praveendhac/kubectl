@@ -9,6 +9,7 @@ def get_values(env):
   return val
 
 def exec_command(val_list, kctl, kube_ctx):
+  kcfg_file = kube_ctx.split("=")[1]
   if len(val_list) == 3:
     if "--all-namespaces" in val_list[2]:
       cmd = kctl + " " + val_list[0] + " " + val_list[1] + " " + val_list[2]
@@ -17,12 +18,23 @@ def exec_command(val_list, kctl, kube_ctx):
   elif len(val_list) == 2:
     cmd = kctl + " " + val_list[0] + " " + val_list[1]
   elif len(val_list) == 1:
-    cmd = kctl + " " + val_list[0]
+    if "cluster-info" in val_list[0]:
+      cmd = kctl + " " + val_list[0]
+    elif "all" in val_list[0]:
+      cmd = "gardenctl ls gardens"
+      proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+      kctx, err = proc.communicate()
+      if not err:
+        print "kctx:", kctx
+        return
   else:
     print "invalid [verb, resource, namespace]:", val_list
-  print "cmd:", cmd
-  #proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-  #out, err = proc.communicate()
+  print "Executing :", cmd, "in context of ",kube_ctx 
+  cmd += " --kubeconfig=" + kcfg_file
+  proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+  kout, err = proc.communicate()
+  if not err:
+      print "kout:\n", kout
 
 def main():
   kctl = os.environ.get('KUBECTL_PLUGINS_CALLER')
@@ -30,15 +42,17 @@ def main():
   #print "command file:", os.environ.get('KUBECTL_PLUGINS_DESCRIPTOR_COMMAND')
   if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN'):
     cmd = "gardenctl target garden msa-dev-garden"
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    kctx, err = proc.communicate()
-    if not err:
-      print "kctx:", kctx
+    try:
+      proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+      kctx, err = proc.communicate()
+      if not err:
+        print "kctx:", kctx
+    except:
+      print "gardenctl not present, check PATH"
+      return
+
     k8s_val = get_values(os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN'))
     exec_command(k8s_val, kctl, kctx)
-    print "k8s_val:", k8s_val
-    # gardenctl target garden msa-dev-garden |cut -d = -f2
-    print os.system("gardenctl ls gardens")
   
   if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SEED'):
     k8s_val = get_values(os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SEED'))
