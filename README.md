@@ -25,6 +25,9 @@ $ tree
         ├── plugin.yaml
         └── security.py
 ```
+
+Coply all directories from this repo's plugins directory to `~/.kube/plugins/` on your local machine 
+
 Plugins list
 ```
 $ kubectl plugin
@@ -50,4 +53,4 @@ commands).
 * Reference
 https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/
 
-* only gardener plugin is available now, other plugins are for future releases
+# only gardener plugin is available now, other plugins are for future releases

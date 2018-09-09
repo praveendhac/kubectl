@@ -1,6 +1,6 @@
 name: "operations"
-shortDesc: "Kubernetes Security Checks"
-longDesc: "Kubernetes Security checks based on CIS, NIST etc. Basic Security Scan"
+shortDesc: "Kubernetes Operations"
+longDesc: "Kubernetes cluster operations"
 example: "" 
 command: "./operations.py"
 flags: 
