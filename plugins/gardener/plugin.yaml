@@ -1,6 +1,6 @@
 name: "gardener"
 shortDesc: "Gardener commands"
-longDesc: "gardener plugin helps switching between garden, seed, shoot easier. Run with \"-h\" for help. If the flag values does not make sense, pass \"all\""
+longDesc: "gardener plugin helps switching between garden, seed, shoot clusters easier. Run with \"-h\" for help. If the flag values does not make sense, pass \"all\""
 example: "" 
 command: "./gardener.py"
 flags: 

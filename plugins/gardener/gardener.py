@@ -9,10 +9,8 @@ def get_values(env):
   return val
 
 def exec_command(cmd):
-  print "EXECUTING: ", cmd
   proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
   out, err = proc.communicate()
-  print "OUT:", out, "ERR:", err
   if err:
     if "gardenctl" in cmd:
       out = err + " ,check \"gardenctl\" PATH"
@@ -28,6 +26,7 @@ def get_cluster_kubecfg(cluster_ctx, cluster_name):
   if "shoot_ctx" in cluster_ctx:
     cmd = "gardenctl target shoot " + cluster_name
   # return KUBECONFIG
+  print "Executing: ", cmd
   return exec_command(cmd)
 
 def parse_values(cluster_ctx, flag_val, kctl):
@@ -43,14 +42,31 @@ def parse_values(cluster_ctx, flag_val, kctl):
     garden_cluster_name = garden_flag_val.split(" ")[0]
     gcluster_kubecfg = get_cluster_kubecfg("garden_ctx", garden_cluster_name)
     garden_kcfg_file = gcluster_kubecfg.split("=")[1]
-    print "KCFGGG:", gcluster_kubecfg, garden_kcfg_file
     cmd = "export " + gcluster_kubecfg
+    print "Executing: ", cmd
     res = exec_command(cmd)
     # get seed kubeconfig in specified garden cluster
-    #cmd = "gardenctl target seed " + cluster_name = flag_val.split(" ")[0]
     seed_cluster_kubecfg = get_cluster_kubecfg("seed_ctx", cluster_name)
     print "PQPQP:", seed_cluster_kubecfg 
     kcfg_file = seed_cluster_kubecfg.split("=")[1]
+  elif "shoot_ctx" in cluster_ctx:
+    # get garden kubeconfig
+    garden_flag_val = os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN')
+    garden_cluster_name = garden_flag_val.split(" ")[0]
+    gcluster_kubecfg = get_cluster_kubecfg("garden_ctx", garden_cluster_name)
+    cmd = "export " + gcluster_kubecfg
+    print "Executing: ", cmd
+    res = exec_command(cmd)
+    # get seed kubeconfig in specified garden cluster
+    #cmd = "gardenctl target seed " + cluster_name = flag_val.split(" ")[0]
+    seed_flag_val = os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_SEED')
+    seed_cluster_name = seed_flag_val.split(" ")[0]
+    seed_cluster_kubecfg = get_cluster_kubecfg("seed_ctx", seed_cluster_name)
+    cmd = "export " + seed_cluster_kubecfg
+    print "Executing: ", cmd
+    res = exec_command(cmd)
+    shoot_cluster_kubecfg = get_cluster_kubecfg("shoot_ctx", cluster_name)
+    kcfg_file = shoot_cluster_kubecfg.split("=")[1]
 
   val_list = flag_val.split(" ")
   if len(val_list) == 4:
@@ -65,13 +81,14 @@ def parse_values(cluster_ctx, flag_val, kctl):
       cmd = kctl + " " + val_list[1]
     elif "all" in val_list[1]:
       cmd = "gardenctl ls gardens"
+      print "Executing: ", cmd
       garden_ls = exec_command(cmd) 
       if garden_ls:
         print "garden_ls:", garden_ls
     elif len(val_list) == 1:
       pass
 
-  print "Executing :", cmd, "in context of ",kcfg_file 
+  print "EXECUTING \"" + cmd + "\" in context of \"" + kcfg_file + "\""
   cmd += " --kubeconfig=" + kcfg_file
   return cmd
 
@@ -85,6 +102,7 @@ def exec_ls(ctx):
     # set garden context, where seed is located
     cluster_kubecfg = get_cluster_kubecfg("garden_ctx", garden_cluster_name)
     cmd = "export " + cluster_kubecfg
+    print "Executing: ", cmd
     res = exec_command(cmd)
     cmd = "gardenctl ls seeds"
   if "shoots" in ctx:
@@ -95,6 +113,7 @@ def exec_ls(ctx):
     cmd1 = "gardenctl ls shoots"
     cmd = "kubectl get shoots --all-namespaces " + "--kubeconfig=" + cluster_kubecfg.split("=")[1]
     print exec_command(cmd)
+  print "Executing: ", cmd
   res = exec_command(cmd)
   print res
     
@@ -166,5 +185,5 @@ def main():
     print "Changing namespace context from ", cn_ctx, " to ", new_ns_ctx
 
 if __name__ == "__main__":
-  print "gardener plugin helps switching between garden, seed, shoot easier\n"
+  print "gardener plugin helps switching between garden, seed, shoot clusters easier. Run with \"-h\" for help. If the flag values does not make sense, pass \"all\"\n"
   main()
