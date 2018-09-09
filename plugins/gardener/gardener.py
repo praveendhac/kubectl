@@ -9,14 +9,18 @@ def get_values(env):
   return val
 
 def exec_command(cmd):
-  proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-  out, err = proc.communicate()
-  if err:
-    if "gardenctl" in cmd:
-      out = err + " ,check \"gardenctl\" PATH"
-    else:
-      out = err, "may be invalid [verb, resource, namespace]"
-  return out
+  if "gardenctl" in cmd or "kubectl" in cmd:
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    out, err = proc.communicate()
+    if err:
+      if "gardenctl" in cmd:
+        out = err + " ,check \"gardenctl\" PATH"
+      else:
+        out = err, "may be invalid [verb, resource, namespace]"
+    return out
+  else:
+    return cmd
+
 
 def get_cluster_kubecfg(cluster_ctx, cluster_name):
   if "garden_ctx" in cluster_ctx:
@@ -33,9 +37,11 @@ def parse_values(cluster_ctx, flag_val, kctl):
   cluster_name = flag_val.split(" ")[0]
   if "garden_ctx" in cluster_ctx:
     cluster_kubecfg = get_cluster_kubecfg(cluster_ctx, cluster_name)
-    print "PPPP:", cluster_ctx, flag_val, kctl, cluster_name
     print "cluster_kubecfg:", cluster_kubecfg
-    kcfg_file = cluster_kubecfg.split("=")[1]
+    if "No match for" in cluster_kubecfg:
+      return "Could not find garden \"" + cluster_name + "\""
+    else:
+      kcfg_file = cluster_kubecfg.split("=")[1]
   elif "seed_ctx" in cluster_ctx:
     # get garden kubeconfig
     garden_flag_val = os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN')
@@ -47,7 +53,6 @@ def parse_values(cluster_ctx, flag_val, kctl):
     res = exec_command(cmd)
     # get seed kubeconfig in specified garden cluster
     seed_cluster_kubecfg = get_cluster_kubecfg("seed_ctx", cluster_name)
-    print "PQPQP:", seed_cluster_kubecfg 
     kcfg_file = seed_cluster_kubecfg.split("=")[1]
   elif "shoot_ctx" in cluster_ctx:
     # get garden kubeconfig
@@ -66,7 +71,10 @@ def parse_values(cluster_ctx, flag_val, kctl):
     print "Executing: ", cmd
     res = exec_command(cmd)
     shoot_cluster_kubecfg = get_cluster_kubecfg("shoot_ctx", cluster_name)
-    kcfg_file = shoot_cluster_kubecfg.split("=")[1]
+    if "No match for" in shoot_cluster_kubecfg:
+      return "Shoot " + cluster_name + " might not be in garden " + garden_cluster_name
+    else:
+      kcfg_file = shoot_cluster_kubecfg.split("=")[1]
 
   val_list = flag_val.split(" ")
   if len(val_list) == 4:
@@ -186,4 +194,5 @@ def main():
 
 if __name__ == "__main__":
   print "gardener plugin helps switching between garden, seed, shoot clusters easier. Run with \"-h\" for help. If the flag values does not make sense, pass \"all\"\n"
-  main()
+  if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN'):
+    main()
