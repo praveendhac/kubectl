@@ -1,0 +1,12 @@
+name: "operations"
+shortDesc: "Kubernetes Security Checks"
+longDesc: "Kubernetes Security checks based on CIS, NIST etc. Basic Security Scan"
+example: "" 
+command: "./operations.py"
+flags: 
+  - name: "cis"
+    desc: "CIS benchmark checks"
+  - name: "nist"
+    desc: "NIST benchmark checks"
+  - name: "scan"
+    desc: "Basic security scan"
