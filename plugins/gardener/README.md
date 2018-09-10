@@ -4,7 +4,7 @@ Copy this folder (gardener) into _~/.kube/plugins_ on *nix, Apple Mac machines. 
 
 * gardener plugin heavily depends on _gardenctl_ command, make sure _gardenctl_ binary is in the PATH and garden config (_~/.garden/config_) file is configured accordingly.
 
-* Gardener plugin help
+# Gardener plugin help
 ```
 $ kubectl plugin gardener -h
 gardener plugin helps switching between garden, seed, shoot clusters easier. Run
@@ -27,7 +27,7 @@ Use "kubectl options" for a list of global command-line options (applies to all
 commands).
 ```
 
-* Run in Garden context
+# Run commands in Garden cluster context
 ```
 List garden clusters
 $ kubectl plugin gardener --garden="ls"
@@ -41,7 +41,8 @@ It is of the format
 $ kubectl plugin gardener --garden="GARDEN-CLUSTER-NAME" --cmd="KUBECTL-COMMANDS-IN-GARDEN-CONTEXT" 
 ```
 
-* Run in Seed context
+# Run commands in Seed cluster context
+The seed is in a specific garden cluster
 ```
 List seed clusters in specific garden context
 $ kubectl plugin gardener --garden="pd-sec-garden" --seed="ls"
@@ -56,7 +57,8 @@ It is of the format
 $ kubectl plugin gardener --garden="GARDEN-CLUSTER-NAME" --seed="SEED-CLUSTER-NAME" --cmd="KUBECTL-COMMANDS-IN-SEED-CONTEXT"
 ```
 
-* Run in Shoot context
+# Run in Shoot cluster context
+Select a shoot cluster from specific garden and seed clusters
 ```
 List shoot clusters in specific garden and seed context
 $ kubectl plugin gardener --garden="pd-sec-garden" --seed="azure-westus-02" --shoot="ls"
@@ -71,7 +73,7 @@ It is of the format
 $ kubectl plugin gardener --garden="GARDEN-CLUSTER-NAME" --seed="SEED-CLUSTER-NAME" ---shoot="SHOOT_-CLUSTER-NAME" -cmd="KUBECTL-COMMANDS-IN-GARDEN-SEED-SHOOT-CONTEXT"
 ```
 
-* References
+# References
 - https://kubernetes.io/blog/2018/05/17/gardener/
 - https://github.com/gardener/gardener
 
