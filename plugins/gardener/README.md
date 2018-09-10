@@ -72,6 +72,7 @@ $ kubectl plugin gardener --garden="GARDEN-CLUSTER-NAME" --seed="SEED-CLUSTER-NA
 ```
 
 * References
-https://kubernetes.io/blog/2018/05/17/gardener/
-https://github.com/gardener/gardener
+** https://kubernetes.io/blog/2018/05/17/gardener/
+** https://github.com/gardener/gardener
+
 ## Feedback/Comments for improvement are welcome!!
