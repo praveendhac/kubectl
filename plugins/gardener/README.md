@@ -1,8 +1,8 @@
 # Gardener plugin
 gardener plugin helps switching between garden, seed and shoot clusters easier.
-Copy this folder (gardener) into "~/.kube/plugins" on *nix, Apple Mac machines. Should work on windows too!
+Copy this folder (gardener) into _~/.kube/plugins_ on *nix, Apple Mac machines. Should work on windows too!
 
-* this plugin heavily depends on _gardenctl_ command, make sure gardenctl is in the path and garden config file is configured accordingly.
+* gardener plugin heavily depends on _gardenctl_ command, make sure _gardenctl_ binary is in the PATH and garden config (_~/.garden/config_) file is configured accordingly.
 
 * Gardener plugin help
 ```
