@@ -61,7 +61,7 @@ $ kubectl plugin gardener --garden="GARDEN-CLUSTER-NAME" --seed="SEED-CLUSTER-NA
 List shoot clusters in specific garden and seed context
 $ kubectl plugin gardener --garden="pd-sec-garden" --seed="azure-westus-02" --shoot="ls"
 
-Pick one of the seed's name from above command output
+Pick one of the shoot's name from above command output
 $ kubectl plugin gardener --garden="pd-dev-garden" --seed="azure-westus-02" --shoot="test" --cmd="kubectl get ns"
 $ kubectl plugin gardener --garden="pd-dev-garden" --seed="azure-westus-02" --shoot="pd" --cmd="kubectl cluster-info"
 $ kubectl plugin gardener --garden="pd-dev-garden" --seed="aws-westus-02" --shoot="forensics" --cmd="kubectl get po -n shoot--pd--pd"
