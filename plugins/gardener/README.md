@@ -71,4 +71,7 @@ It is of the format
 $ kubectl plugin gardener --garden="GARDEN-CLUSTER-NAME" --seed="SEED-CLUSTER-NAME" ---shoot="SHOOT_-CLUSTER-NAME" -cmd="KUBECTL-COMMANDS-IN-GARDEN-SEED-SHOOT-CONTEXT"
 ```
 
+* References
+https://kubernetes.io/blog/2018/05/17/gardener/
+https://github.com/gardener/gardener
 ## Feedback/Comments for improvement are welcome!!
