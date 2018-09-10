@@ -107,8 +107,8 @@ def main():
       print "only kubectl commands are allowed in \"--cmd\""
 
 if __name__ == "__main__":
-  print "gardener plugin helps switching between garden, seed, shoot clusters easier. Run with \"-h\" for help. If the flag values does not make sense, pass \"all\"\n"
+  print "gardener plugin helps switching between garden, seed, shoot clusters easier. Run with \"-h\" for help.\n"
   if os.environ.get('KUBECTL_PLUGINS_LOCAL_FLAG_GARDEN'):
     main()
   else:
-    print "Check help! gardene context missing"
+    print "Check help! gardener context missing"
